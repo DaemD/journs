@@ -402,7 +402,6 @@ const CARRY = (p) => withArm(p, 1, 50, 40); // holding the painting in front of 
 const HIPS = withArm(withArm(STAND, 0, -35, 95), 1, -35, 95);
 const REACH_UP = withArm(withArm(STAND, 1, 150, 10), 0, 150, 10);
 const CAMERA = withArm(withArm(STAND, 1, 98, -8), 0, 88, 12);
-const KNEEL = pose(32, 80, 100, -10, 85, 12, 10, 40, 30);
 const HOLD_LOW = withArm(STAND, 1, 40, 40);
 const TO_FACE = withArm(STAND, 1, 110, 70);
 const chat = (t, o, base = SIT) => withArm(base, 1, lerp(45, 90, cyc(t, 6, o)), 40);
@@ -450,16 +449,6 @@ const artOn = (parent, kind, x, y, drawn) => {
   put(g, x, y);
   const parts = ART[kind].map((d) => el('path', drawn ? { class: 'draw', pathLength: 1, d } : { class: 'prop', d }, g));
   return { g, parts };
-};
-
-// one flower, for the very end
-const oneFlower = () => {
-  let s = '<path class="prop" d="M0 0 Q1.5 -7 0 -13 M0.5 -6 q5 -1 6 -5 q-4 0 -6 3"/>';
-  for (let i = 0; i < 5; i += 1) {
-    const a = (i / 5) * Math.PI * 2 - Math.PI / 2;
-    s += `<circle class="prop paper" cx="${f1(Math.cos(a) * 3.2)}" cy="${f1(-16.5 + Math.sin(a) * 3.2)}" r="2.6"/>`;
-  }
-  return s + '<circle class="fill" cx="0" cy="-16.5" r="1.4"/>';
 };
 
 /* ---------- tracking: each step shows up as a page in Vercel Analytics ---------- */
@@ -1058,67 +1047,74 @@ scene({
   },
 });
 
-// 9. the end: she goes her way; I leave one flower on the line, and go mine
+// 9. the end: I'm the one who breaks it. I turn away, the thread snaps,
+// she's hurt and walks away; I reach out too late, and I'm left under the rain
+const TO_CHEST = withArm(STAND, 1, 30, 110);
 scene({
   key: 'end',
-  slow: [[0.58, 0.86, 1.6]],
+  slow: [[0.1, 0.36, 1.8], [0.42, 0.62, 1.4]],
   len: 760,
   w: 3,
-  view: { w: 600, h: 300, dy: -70 },
+  view: { w: 560, h: 290, dy: -75 },
   build(A, g) {
-    const sun = group(g.sky, D.sun(20));
-    const flower = group(g.front, oneFlower(), { opacity: 0 });
-    return { sun, flower, A };
+    const snapBurst = group(g.front, D.burst(4, 10, 8), { opacity: 0 });
+    const weather = group(g.back, D.cloud(A - 128, -165, 100) + D.rain(A - 150, A - 70, -150, 24, 91), { opacity: 0 });
+    return { snapBurst, weather, A };
   },
   act(t, A) {
-    // her: a last moment, then she turns and walks on
-    const hk = smooth(0.24, 0.58, t);
-    const hx = lerp(A + 90, A + 470, hk);
-    const herP = hk > 0 && hk < 1 ? withLean(walk(hx * STR * 0.8 + 1.4), 5) : withLean(STAND, 4);
-    const her = at(hx, t > 0.2 ? 1 : -1, herP, { nod: lerp(6, 16, smooth(0.08, 0.2, t)), show: 1 - smooth(0.48, 0.58, t) });
-
-    // me: still, watching her go; then I lay the flower down, and go too
-    let mx = A - 90;
+    // me: I turn and walk away from her first
+    let mx = A - 30;
     let mdir = 1;
-    let meP = withLean(HOLD_LOW, 4);
-    let nod = lerp(6, 18, smooth(0.1, 0.3, t));
-    if (t >= 0.58 && t < 0.66) {
-      const k = smooth(0.6, 0.66, t);
-      mx = lerp(A - 90, A - 22, k);
-      meP = k > 0 && k < 1 ? withArm(walk(mx * STR * 0.8), 1, 40, 40) : HOLD_LOW;
-      nod = 10;
-    } else if (t >= 0.66 && t < 0.82) {
-      mx = A - 22;
-      meP = mix(HOLD_LOW, KNEEL, smooth(0.66, 0.7, t) * (1 - smooth(0.77, 0.81, t)));
-      nod = 10;
-    } else if (t >= 0.82) {
-      const k = smooth(0.84, 0.98, t);
-      mx = lerp(A - 22, A - 420, k);
-      mdir = t > 0.83 ? -1 : 1;
-      meP = k > 0 && k < 1 ? withLean(walk(mx * STR * 0.8), 5) : STAND;
-      nod = 14;
+    let meP = STAND;
+    let nod = 0;
+    if (t >= 0.12 && t < 0.26) {
+      const k = smooth(0.12, 0.26, t);
+      mx = lerp(A - 30, A - 130, k);
+      mdir = -1;
+      meP = k > 0 && k < 1 ? walk(mx * STR) : STAND;
+    } else if (t >= 0.26 && t < 0.34) {
+      mx = A - 130;
+      mdir = -1;
+    } else if (t >= 0.34 && t < 0.62) {
+      // I realise, turn back, and reach for her, too late
+      const k = smooth(0.44, 0.52, t);
+      mx = lerp(A - 130, A - 105, k);
+      const reachOut = window01(0.44, 0.6, t, 0.04);
+      meP = mix(k > 0 && k < 1 ? walk(mx * STR) : STAND, withArm(withLean(STAND, -6), 1, 88, 0), reachOut);
+      nod = -4 * reachOut;
+    } else if (t >= 0.62) {
+      mx = A - 105;
+      // left standing in the rain, head down
+      meP = mix(withLean(SAD, 6), withLean(withArm(SAD, 1, -4, 2), 16), smooth(0.66, 0.78, t));
+      nod = lerp(14, 32, smooth(0.62, 0.78, t));
     }
+    if (t < 0.12) nod = 0;
+
+    // her: hurt, a hand to her chest; then she turns and goes
+    const hk = smooth(0.44, 0.62, t);
+    const hx = lerp(A + 30, A + 430, hk);
+    let herP = mix(STAND, TO_CHEST, window01(0.3, 0.46, t, 0.04));
+    if (hk > 0 && hk < 1) herP = withLean(walk(hx * STR * 0.85 + 1.4), 5);
+    const her = at(hx, t > 0.44 ? 1 : -1, herP, {
+      nod: lerp(0, 18, smooth(0.28, 0.38, t)),
+      show: 1 - smooth(0.56, 0.64, t),
+    });
     return {
-      me: at(mx, mdir, meP, { nod, show: 1 - smooth(0.9, 0.98, t) }),
+      me: at(mx, mdir, meP, { nod }),
       her,
-      bond: lerp(0.5, 0.3, smooth(0, 0.3, t)),
-      snap: smooth(0.34, 0.5, t),
+      bond: lerp(0.9, 0.6, smooth(0.12, 0.26, t)),
+      snap: smooth(0.26, 0.38, t),
     };
   },
   cam(t, A) {
-    const k = ease(smooth(0.8, 1, t));
-    return { x: A - 4 * k, y: lerp(-70, -40, k), w: lerp(600, 380, k), h: lerp(300, 200, k) };
+    const k = ease(smooth(0.62, 0.9, t));
+    return { x: lerp(A, A - 105, k), y: lerp(-75, -70, k), w: lerp(560, 400, k), h: lerp(290, 250, k) };
   },
   update(t, r, c) {
-    put(r.sun, r.A + 170, lerp(-190, 30, smooth(0.05, 0.95, t)));
-    const rest = { x: r.A - 2, y: -3 };
-    if (!c.active || !c.me) {
-      put(r.flower, rest.x, rest.y, 80);
-      return op(r.flower, t >= 1 ? 1 : 0);
-    }
-    const k = smooth(0.7, 0.75, t);
-    put(r.flower, lerp(c.me.hand.x, rest.x, k), lerp(c.me.hand.y + 2, rest.y, k), lerp(20, 80, k));
-    op(r.flower, smooth(0, 0.05, t));
+    op(r.weather, smooth(0.6, 0.7, t));
+    if (!c.active || !c.me || !c.her) return op(r.snapBurst, 0);
+    put(r.snapBurst, (c.me.x + c.her.x) / 2, (c.me.neck.y + c.her.neck.y) / 2 + 14);
+    op(r.snapBurst, pulse(0.25, 0.31, t));
   },
 });
 
@@ -1222,10 +1218,10 @@ const defaultCam = (s) => {
 const camOf = (s, t, st) => (s.cam ? s.cam(t, s.A, st) : defaultCam(s));
 const camMix = (a, b, k) => ({ x: lerp(a.x, b.x, k), y: lerp(a.y, b.y, k), w: lerp(a.w, b.w, k), h: lerp(a.h, b.h, k) });
 
-// how close we are, scene by scene: far apart at first, slowly closer, then apart at the end
-const GAPS = [260, 190, 150, 120, 200, 100, 90, 85, 75, 180];
+// how close we are, scene by scene: far apart at first, slowly closer
+const GAPS = [260, 190, 150, 120, 200, 100, 90, 85, 75, 60];
 // how strong the thread between us is (0 = gone)
-const BOND = [0.1, 0.3, 0.45, 0.58, 0.62, 0.72, 0.8, 0.86, 0.9, 0.5];
+const BOND = [0.1, 0.3, 0.45, 0.58, 0.62, 0.72, 0.8, 0.86, 0.9, 0.9];
 const curve = (arr, x) => {
   const i = clamp(Math.floor(x), 0, arr.length - 1);
   const j = Math.min(i + 1, arr.length - 1);
