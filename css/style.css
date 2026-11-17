@@ -7,6 +7,7 @@
 :root {
     --bg: #ffffff;
     --ink: #111111;
+    --green: #4f9a68;
 }
 
 html,
@@ -378,4 +379,20 @@ html.locked body {
     font-style: italic;
     font-size: 8.4px;
     fill: var(--ink);
+}
+
+/* her favourite colour: a few quiet touches of green */
+.green,
+.green .prop {
+    stroke: var(--green);
+    stroke-opacity: 0.9;
+}
+
+.green-fill {
+    fill: var(--green);
+    opacity: 0.75;
+}
+
+.start-hint {
+    color: var(--green);
 }

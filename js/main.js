@@ -284,7 +284,7 @@ const D = {
     `<path class="prop prop-soft" d="M0 ${-string} q-4 ${string * 0.35} 2 ${string * 0.6} q4 ${string * 0.25} -2 ${string * 0.4}"/>`,
   bouquet: (s = 1) => {
     const flowers = [[-6, -22], [0, -27], [6, -22], [-3, -17], [4, -16], [-9, -15], [9, -14]];
-    let out = `<path class="prop" d="M0 0 L${-7 * s} ${-12 * s} M0 0 L${7 * s} ${-12 * s} M0 0 V${-14 * s}"/>`;
+    let out = `<path class="prop green" d="M0 0 L${-7 * s} ${-12 * s} M0 0 L${7 * s} ${-12 * s} M0 0 V${-14 * s}"/>`;
     out += `<path class="prop paper" d="M${-3 * s} ${-2 * s} L${-10 * s} ${-14 * s} L${10 * s} ${-14 * s} L${3 * s} ${-2 * s} Z"/>`;
     flowers.forEach(([fx, fy]) => {
       out += `<circle class="prop paper" cx="${f1(fx * s)}" cy="${f1(fy * s)}" r="${f1(3.4 * s)}"/><circle class="fill" cx="${f1(fx * s)}" cy="${f1(fy * s)}" r="${f1(1 * s)}"/>`;
@@ -447,7 +447,11 @@ const ART = {
 const artOn = (parent, kind, x, y, drawn) => {
   const g = group(parent, '<rect class="prop paper" x="-20" y="-17" width="40" height="34"/>');
   put(g, x, y);
-  const parts = ART[kind].map((d) => el('path', drawn ? { class: 'draw', pathLength: 1, d } : { class: 'prop', d }, g));
+  const green = { flower: [1, 2], hills: [0, 1] }[kind] || [];
+  const parts = ART[kind].map((d, i) => {
+    const c = `${drawn ? 'draw' : 'prop'}${green.includes(i) ? ' green' : ''}`;
+    return el('path', drawn ? { class: c, pathLength: 1, d } : { class: c, d }, g);
+  });
   return { g, parts };
 };
 
@@ -476,6 +480,10 @@ scene({
   len: 360,
   w: 0.8,
   view: { w: 560, h: 240 },
+  build(A, g) {
+    const tuft = (x) => `<path class="prop green" d="M${x - 3} 0 l-2 -6 M${x} 0 v-8 M${x + 3} 0 l2 -5"/>`;
+    group(g.back, tuft(A + 104) + tuft(A + 158) + tuft(A + 176));
+  },
   act: (t, A) => ({ me: at(A - 130, 1, STAND), her: at(A + 130, 1, STAND) }),
 });
 
@@ -490,7 +498,7 @@ scene({
     let s = `<path class="prop" d="M${A - 100} -160 H${A + 100}"/>`;
     for (let i = 0; i < 10; i += 1) {
       const x = A - 100 + i * 20;
-      s += `<path class="prop ${i % 2 ? 'prop-soft' : ''}" d="M${x} -160 V-140 q10 10 20 0 V-160"/>`;
+      s += `<path class="prop ${i % 2 ? 'green' : ''}" d="M${x} -160 V-140 q10 10 20 0 V-160"/>`;
     }
     s += `<path class="prop prop-soft" d="M${A - 100} -160 V0 M${A + 100} -160 V0"/>`;
     s += D.sign(A, -178, 'BENEDICTION', 110);
@@ -611,7 +619,7 @@ scene({
       `<path class="halo" d="M${x - 3} -192 L${x - 26} ${yTop - 4} M${x + 3} -192 L${x + 26} ${yTop - 4}"/>`;
     // circles
     s += spot(A - 250, -144) + frame(A - 250, -118, 70, 52);
-    s += `<circle class="prop" cx="${A - 262}" cy="-122" r="11"/><circle class="fill faint" cx="${A - 236}" cy="-110" r="6"/><path class="prop prop-soft" d="M${A - 278} -100 L${A - 222} -134"/>`;
+    s += `<circle class="prop" cx="${A - 262}" cy="-122" r="11"/><circle class="green-fill" cx="${A - 236}" cy="-110" r="6"/><path class="prop prop-soft" d="M${A - 278} -100 L${A - 222} -134"/>`;
     // a face
     s += spot(A, -155) + frame(A, -122, 50, 66);
     s += `<ellipse class="prop" cx="${A}" cy="-124" rx="11" ry="15"/><circle class="fill" cx="${A - 4}" cy="-128" r="1.3"/><circle class="fill" cx="${A + 5}" cy="-126" r="1.3"/><path class="prop" d="M${A + 1} -126 l-3 8 h4 M${A - 4} -113 q4 3 8 0"/>`;
@@ -673,7 +681,7 @@ const DOT_I = scene({
     const easel = (x) => `<path class="prop" d="M${x - 13} 0 L${x - 5} -29 M${x + 13} 0 L${x + 5} -29 M${x} -63 V-70 M${x - 23} -29 H${x + 23}"/>`;
     let s = D.lamp(A + 35, -240, -150);
     s += D.sign(A - 130, -150, 'DOT', 56);
-    s += `<path class="prop prop-soft" d="M${A - 190} 0 l-6 -18 h20 l-6 18 Z M${A - 186} -18 q-10 -16 -2 -30 M${A - 186} -18 q10 -14 6 -26"/>`;
+    s += `<path class="prop prop-soft" d="M${A - 190} 0 l-6 -18 h20 l-6 18 Z"/><path class="prop green" d="M${A - 186} -18 q-10 -16 -2 -30 M${A - 186} -18 q10 -14 6 -26"/>`;
     s += `<path class="prop prop-soft" d="M${A + 150} -26 H${A + 200} M${A + 155} -26 V0 M${A + 195} -26 V0 M${A + 160} -26 v-6 h8 v6 M${A + 174} -26 v-8 h8 v8 M${A + 188} -26 v-5 h6 v5"/>`;
     s += easel(A - 18) + easel(A + 92);
     group(g.back, s);
@@ -723,10 +731,10 @@ const OFFICE_I = scene({
     s += D.window(A - 285, -112, 48, 40);
     s += `<path class="prop prop-soft" d="M${A - 305} -94 v-10 h6 v-6 h6 v16 M${A - 290} -94 v-14 h8 v14 M${A - 276} -94 v-8 h6 v8"/>`;
     s += D.table(A - 60, 48) + D.chair(A - 98, 1) + D.laptop(A - 78, -26, 1);
-    s += `<path class="prop prop-soft" d="M${A - 20} 0 l-5 -16 h18 l-5 16 Z M${A - 16} -16 q-8 -14 -2 -26 M${A - 16} -16 q8 -12 5 -22"/>`;
+    s += `<path class="prop prop-soft" d="M${A - 20} 0 l-5 -16 h18 l-5 16 Z"/><path class="prop green" d="M${A - 16} -16 q-8 -14 -2 -26 M${A - 16} -16 q8 -12 5 -22"/>`;
     // her place, across the way
     s += D.room(A + 160, A + 350, 140);
-    s += `<path class="prop" d="M${A + 215} 0 V-28 Q${A + 215} -34 ${A + 221} -34 H${A + 289} Q${A + 295} -34 ${A + 295} -28 V0 M${A + 215} -14 H${A + 295}"/>`;
+    s += `<path class="prop green" d="M${A + 215} 0 V-28 Q${A + 215} -34 ${A + 221} -34 H${A + 289} Q${A + 295} -34 ${A + 295} -28 V0 M${A + 215} -14 H${A + 295}"/>`;
     s += `<path class="prop prop-soft" d="M${A + 325} 0 V-80 M${A + 315} -80 h20 l-4 -12 h-12 Z"/>`;
     group(g.back, s);
     const wall = artOn(g.back, 'flower', A - 170, -100, false);
@@ -846,7 +854,7 @@ scene({
     group(g.sky, stars);
     const moon = group(g.sky, D.moon(0, 0, 14));
     const car = group(g.front, `
-      <path class="prop paper" d="M-50 -8 V-26 Q-48 -32 -38 -33 L48 -31 Q54 -29 54 -18 V-8 Z"/>
+      <path class="prop paper green" d="M-50 -8 V-26 Q-48 -32 -38 -33 L48 -31 Q54 -29 54 -18 V-8 Z"/>
       <path class="prop" d="M-34 -33 L-24 -62 H16 L32 -32 M-4 -62 V-33"/>`);
     const wheels = [-30, 34].map((wx) => ({ w: group(car, '<circle class="prop paper" cx="0" cy="0" r="8"/><path class="prop" d="M-8 0 H8 M0 -8 V8"/>'), x: wx }));
     const notes = [0, 1, 2, 3].map(() => group(g.front, D.note()));
@@ -900,7 +908,7 @@ scene({
     s += `<path class="prop prop-soft" d="M${A - 200} -120 H${A - 130} M${A - 200} -88 H${A - 130}"/>`;
     [-194, -184, -174, -160, -150, -140].forEach((dx, i) => {
       const y = i < 3 ? -120 : -88;
-      s += `<path class="prop prop-soft" d="M${A + dx} ${y} v-12 q0 -3 2 -4 v-5 h2 v5 q2 1 2 4 v12"/>`;
+      s += `<path class="prop green" d="M${A + dx} ${y} v-12 q0 -3 2 -4 v-5 h2 v5 q2 1 2 4 v12"/>`;
     });
     s += `<rect class="prop paper" x="${A - 2}" y="-34" width="4" height="8"/>`;
     group(g.back, s);
@@ -955,7 +963,7 @@ scene({
     let s = `<path class="prop" d="M${A - 200} -170 H${A + 190}"/>`;
     for (let i = 0; i < 13; i += 1) {
       const x = A - 200 + i * 30;
-      s += `<path class="prop ${i % 2 ? 'prop-soft' : ''}" d="M${x} -170 V-150 q15 12 30 0 V-170"/>`;
+      s += `<path class="prop ${i % 2 ? 'green' : ''}" d="M${x} -170 V-150 q15 12 30 0 V-170"/>`;
     }
     s += `<path class="prop prop-soft" d="M${A - 200} -170 V0 M${A + 190} -170 V0"/>`;
     s += D.window(A - 90, -100, 110, 50);
@@ -968,7 +976,7 @@ scene({
       for (let k = 0; k < 5; k += 1) {
         const fx = x - 8 + rnd() * 16;
         const fy = -24 - rnd() * 12;
-        b += `<path class="prop prop-soft" d="M${f1(x - 3 + k * 1.5)} -16 L${f1(fx)} ${f1(fy)}"/>`;
+        b += `<path class="prop green" d="M${f1(x - 3 + k * 1.5)} -16 L${f1(fx)} ${f1(fy)}"/>`;
         b += `<circle class="prop paper" cx="${f1(fx)}" cy="${f1(fy)}" r="${f1(2.2 + rnd() * 1.2)}"/>`;
       }
     }
@@ -1036,7 +1044,8 @@ scene({
   w: 1.4,
   view: { w: 700, h: 330, dy: -100 },
   build(A, g) {
-    group(g.back, D.bed(A - 180, 1) + D.bed(A + 180, -1));
+    group(g.back, D.bed(A - 180, 1));
+    group(g.back, D.bed(A + 180, -1), { class: 'green' });
     const stars = nightSky(A, g, 7);
     const moon = group(g.sky, D.moon(0, 0, 16));
     const sun = group(g.sky, D.sun(18));
@@ -1084,14 +1093,14 @@ scene({
     s += `<rect class="prop" x="${A - 210}" y="-150" width="90" height="56"/><path class="prop prop-soft" d="M${A - 200} -136 H${A - 160} M${A - 200} -124 H${A - 150} M${A - 200} -112 H${A - 170} M${A - 140} -136 h10 M${A - 140} -124 h10 M${A - 140} -112 h10"/>`;
     s += D.lamp(A + 20, -240, -140);
     s += D.table(A + 20, 44) + D.chair(A - 20, 1) + D.chair(A + 60, -1);
-    s += `<path class="prop prop-soft" d="M${A + 170} 0 l-6 -18 h20 l-6 18 Z M${A + 174} -18 q-10 -16 -2 -30 M${A + 174} -18 q10 -14 6 -26"/>`;
+    s += `<path class="prop prop-soft" d="M${A + 170} 0 l-6 -18 h20 l-6 18 Z"/><path class="prop green" d="M${A + 174} -18 q-10 -16 -2 -30 M${A + 174} -18 q10 -14 6 -26"/>`;
     group(g.back, s);
     // the counter, in front of whoever is making the coffee
     group(g.front, `<rect class="prop paper" x="${A - 222}" y="-30" width="112" height="30"/>`);
     const steam = '<path class="steam" d="M-1 -9 q-2 -3 0 -6 q2 -3 0 -6"/><path class="steam" d="M2 -9 q-2 -3 0 -6 q2 -3 0 -6"/>';
     const cups = [
       group(g.front, `<path class="prop paper" d="M-3.5 0 L-4 -7 H4 L3.5 0 Z"/><path class="prop" d="M4 -5.5 q3 0 3 2 q0 2 -3 2"/>${steam}`),
-      group(g.front, `<path class="prop paper" d="M-3.5 0 L-4 -7 H4 L3.5 0 Z"/><path class="prop" d="M-4 -5.5 q-3 0 -3 2 q0 2 3 2"/>${steam}`),
+      group(g.front, `<path class="prop paper green" d="M-3.5 0 L-4 -7 H4 L3.5 0 Z"/><path class="prop green" d="M-4 -5.5 q-3 0 -3 2 q0 2 3 2"/>${steam}`),
     ];
     const clink = group(g.front, D.burst(4, 9, 8));
     const laughs = [makeLaugh(g.front), makeLaugh(g.front)];
@@ -1427,7 +1436,7 @@ const drawTether = (me, her, st) => {
 };
 
 // the painting from Dot, while it's in my hands
-const carried = group(L.front, `<rect class="prop paper" x="-20" y="-17" width="40" height="34"/>${ART.flower.map((d) => `<path class="prop" d="${d}"/>`).join('')}`, { opacity: 0 });
+const carried = group(L.front, `<rect class="prop paper" x="-20" y="-17" width="40" height="34"/>${ART.flower.map((d, i) => `<path class="prop${i === 1 || i === 2 ? ' green' : ''}" d="${d}"/>`).join('')}`, { opacity: 0 });
 const lerpPt = (a, b, k) => ({ x: lerp(a.x, b.x, k), y: lerp(a.y, b.y, k), s: lerp(a.s, b.s, k) });
 const carryUpdate = (S, me) => {
   if (!me) return op(carried, 0);
