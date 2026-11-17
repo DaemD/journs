@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rabia</title>
+    <meta name="theme-color" content="#ffffff">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="stylesheet" href="css/style.css">
+    <script>
+        // ?me → this device is mine: never count its visits
+        (function () {
+            var q = location.search;
+            try {
+                if (/[?&]me\b/.test(q)) localStorage.setItem('me', '1');
+            } catch (e) {}
+            if (/[?&]me\b/.test(q)) history.replaceState(null, '', location.pathname);
+            window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+            var mine = false;
+            try { mine = localStorage.getItem('me') === '1'; } catch (e) {}
+            if (!mine) {
+                var s = document.createElement('script');
+                s.defer = true;
+                s.src = '/_vercel/insights/script.js';
+                document.head.appendChild(s);
+            }
+        })();
+    </script>
+</head>
+
+<body>
+    <svg class="stage" aria-hidden="true"></svg>
+    <p class="start-hint">scroll to begin</p>
+    <div class="scroll-space"></div>
+    <div class="fade-white" aria-hidden="true"></div>
+
+    <div class="letter-overlay">
+        <article class="letter">
+            <p>I made this to say something I should have said properly a long time ago.</p>
+            <p>I'm sorry. For the hurt I caused you, for the way I handled things, and for how badly it all ended. You didn't deserve any of it.</p>
+            <p>I wasn't honest with you, and I wasn't fair to you. That's on me, completely. I'm not going to explain it away or put any of it on anyone else. It was my choice, and it was my fault.</p>
+            <p>Since then I've been looking hard at myself, at who I was being and why. I'm working on it, properly, and I'm going to keep working on it. I never want to be the reason someone feels the way I made you feel, and I won't do this again.</p>
+            <p>I still don't fully understand how things went the way they did, and that has been hard to sit with. But that's mine to work through, not yours to explain.</p>
+            <p>I'm not asking for anything. Not a reply, not forgiveness, nothing. I just didn't want you to go on thinking I don't know what I did. I do, and I'm sorry.</p>
+            <p>I hope you're doing well, and I hope the people around you now treat you the way you deserve.</p>
+        </article>
+    </div>
+
+    <script src="js/gsap.min.js"></script>
+    <script src="js/ScrollTrigger.min.js"></script>
+    <script src="js/lenis.min.js"></script>
+    <script src="js/main.js"></script>
+</body>
+
+</html>
