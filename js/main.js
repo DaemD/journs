@@ -942,6 +942,92 @@ scene({
   },
 });
 
+// 6b. after the steak: a flower shop, picking out flowers together
+scene({
+  key: 'flowers',
+  slow: [[0.28, 0.82, 1.6]],
+  len: 640,
+  w: 1.9,
+  view: { w: 560, h: 290, dx: 0, dy: -80 },
+  build(A, g) {
+    const rnd = seeded(123);
+    // the shop front, with its striped awning
+    let s = `<path class="prop" d="M${A - 200} -170 H${A + 190}"/>`;
+    for (let i = 0; i < 13; i += 1) {
+      const x = A - 200 + i * 30;
+      s += `<path class="prop ${i % 2 ? 'prop-soft' : ''}" d="M${x} -170 V-150 q15 12 30 0 V-170"/>`;
+    }
+    s += `<path class="prop prop-soft" d="M${A - 200} -170 V0 M${A + 190} -170 V0"/>`;
+    s += D.window(A - 90, -100, 110, 50);
+    s += `<path class="prop prop-soft" d="M${A + 60} 0 V-110 H${A + 96} V0"/>`;
+    group(g.back, s);
+    // buckets of flowers out the front
+    let b = '';
+    for (let x = A - 180; x <= A + 20; x += 32) {
+      b += `<path class="prop paper" d="M${x - 9} -16 L${x - 7} 0 H${x + 7} L${x + 9} -16 Z"/>`;
+      for (let k = 0; k < 5; k += 1) {
+        const fx = x - 8 + rnd() * 16;
+        const fy = -24 - rnd() * 12;
+        b += `<path class="prop prop-soft" d="M${f1(x - 3 + k * 1.5)} -16 L${f1(fx)} ${f1(fy)}"/>`;
+        b += `<circle class="prop paper" cx="${f1(fx)}" cy="${f1(fy)}" r="${f1(2.2 + rnd() * 1.2)}"/>`;
+      }
+    }
+    group(g.back, b);
+    // the counter, in front of the florist
+    group(g.front, `<rect class="prop paper" x="${A + 104}" y="-30" width="76" height="30"/><path class="prop prop-soft" d="M${A + 114} -30 l-3 -6 h10 l-3 6 M${A + 160} -30 v-8 h8 v8"/>`);
+    const bouquet = group(g.front, D.bouquet(0.7), { opacity: 0 });
+    const paper = group(g.front, '<path class="prop paper" d="M-6 0 L-10 -10 H10 L6 0 Z"/>', { opacity: 0 });
+    return { bouquet, paper };
+  },
+  act(t, A) {
+    // walking along the buckets, stopping to look
+    const along = (a, b, from, to) => lerp(from, to, smooth(a, b, t));
+    let hx = A - 120;
+    let mx = A - 152;
+    if (t < 0.4) {
+      hx = along(0.06, 0.16, A - 120, A - 70);
+      hx = t > 0.22 ? along(0.22, 0.32, A - 70, A + 4) : hx;
+      mx = hx - 32;
+    } else {
+      hx = along(0.4, 0.5, A + 4, A + 82);
+      mx = along(0.4, 0.5, A - 28, A + 50);
+    }
+    const moving = (t > 0.06 && t < 0.16) || (t > 0.22 && t < 0.32) || (t > 0.4 && t < 0.5);
+    const look = window01(0.16, 0.22, t, 0.02) + window01(0.32, 0.4, t, 0.02);
+    const point = window01(0.33, 0.4, t, 0.02);
+    let herP = moving ? walk(hx * STR + 1.4) : mix(STAND, withLean(withArm(STAND, 1, 40, 0), 18), look);
+    herP = mix(herP, withLean(withArm(STAND, 1, 60, -10), 14), point);
+    const take = window01(0.6, 0.7, t, 0.03);
+    const smell = window01(0.7, 0.84, t, 0.03);
+    if (t > 0.5) herP = mix(mix(STAND, GIVE, take), TO_FACE, smell);
+    const meP = moving ? walk(mx * STR) : mix(STAND, withLean(STAND, 10), look);
+    // the florist wraps them up and hands them over
+    const wrap = window01(0.5, 0.6, t, 0.02);
+    const hand = window01(0.6, 0.68, t, 0.02);
+    const florist = mix(mix(STAND, withArm(withArm(STAND, 1, lerp(55, 75, cyc(t, 12)), 50), 0, 60, 50), wrap), GIVE, hand);
+    return {
+      me: at(mx, 1, meP, { nod: 10 * look }),
+      her: at(hx, 1, herP, { nod: 12 * look + 10 * smell, lift: smell * Math.abs(Math.sin(t * 90)) * 2 }),
+      extras: [at(A + 142, -1, florist, { hair: true })],
+      wrap,
+    };
+  },
+  update(t, r, c) {
+    const fl = c.extras && c.extras[0];
+    if (!c.active || !c.her || !fl) {
+      op(r.bouquet, 0);
+      op(r.paper, 0);
+      return;
+    }
+    // paper being wrapped on the counter, then the bouquet, then into her hands
+    put(r.paper, fl.hand.x - 4, -30);
+    op(r.paper, smooth(0.5, 0.53, t) * (1 - smooth(0.57, 0.6, t)));
+    const k = smooth(0.62, 0.67, t);
+    put(r.bouquet, lerp(fl.hand.x, c.her.hand.x, k), lerp(fl.hand.y, c.her.hand.y, k) + 4, lerp(-10, 10, k));
+    op(r.bouquet, smooth(0.57, 0.6, t) * (1 - smooth(0.95, 1, t)));
+  },
+});
+
 // 7. calls at night, until the morning
 scene({
   key: 'calls',
@@ -1219,9 +1305,9 @@ const camOf = (s, t, st) => (s.cam ? s.cam(t, s.A, st) : defaultCam(s));
 const camMix = (a, b, k) => ({ x: lerp(a.x, b.x, k), y: lerp(a.y, b.y, k), w: lerp(a.w, b.w, k), h: lerp(a.h, b.h, k) });
 
 // how close we are, scene by scene: far apart at first, slowly closer
-const GAPS = [260, 190, 150, 120, 200, 100, 90, 85, 75, 60];
+const GAPS = [260, 190, 150, 120, 200, 100, 90, 88, 85, 75, 60];
 // how strong the thread between us is (0 = gone)
-const BOND = [0.1, 0.3, 0.45, 0.58, 0.62, 0.72, 0.8, 0.86, 0.9, 0.9];
+const BOND = [0.1, 0.3, 0.45, 0.58, 0.62, 0.72, 0.8, 0.83, 0.86, 0.9, 0.9];
 const curve = (arr, x) => {
   const i = clamp(Math.floor(x), 0, arr.length - 1);
   const j = Math.min(i + 1, arr.length - 1);
